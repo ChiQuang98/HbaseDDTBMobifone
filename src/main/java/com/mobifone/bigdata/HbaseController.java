@@ -31,7 +31,7 @@ public class HbaseController {
             Response requestModel1 = new Response("NOT_MATCHED", null);
             return ResponseEntity.ok(requestModel1);
         }
-        boolean isValid = hbaseAPI.GetPhoneNumber(ipPublic,portPublic,phoneNumber);
+        boolean isValid = hbaseAPI.CheckPhoneNumberPortPublic(ipPublic,phoneNumber,portPublic);
         if (isValid){
             Response requestModel1 = new Response("OK", null);
             return ResponseEntity.ok(requestModel1);

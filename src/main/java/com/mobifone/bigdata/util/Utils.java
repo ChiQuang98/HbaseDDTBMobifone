@@ -1,5 +1,6 @@
 package com.mobifone.bigdata.util;
 
+import com.mobifone.bigdata.model.Nat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
@@ -39,16 +40,14 @@ public class Utils {
             {"IPPrivate"},
     };
     private String[] nameCFSYS = new String[]{
-            "Site",
-            "Times",
+            "Info",
             "Network",
-            "Info"
+
     };
     private String [][] namecolumSYS = new String[][]{
-            {"SiteName"},
-            {"Timestamp"},
+            {"PortPhone","IPDestPhone"},
             {"IPPrivate","PortPrivate","IPPublic","PortPublic","IPDest","PortDest"},
-            {"PhoneNumber"}
+
     };
     public String[] getNameCFMDO() {
         return nameCFMDO;
@@ -102,24 +101,26 @@ public class Utils {
         System.out.println("Fail or Table Existed: "+tableName);
         return false;
     }
-    public boolean insertData(Table table,String keyRow,  String []columFamily,String[][] colums,long TTL, String... value){
+//    {"IPPrivate","PortPrivate","IPPublic","PortPublic","IPDest","PortDest"},
+    public boolean insertData(Table table, String keyRow, String []columFamily, String[][] colums, long TTL, Nat sysObj){
         Put p = new Put(Bytes.toBytes(keyRow));
-        int lenColumFamily = columFamily.length;
-        int index = 0;
-        for(int i=0;i<lenColumFamily;i++){
-            int lenColumeEachFamily = colums[i].length;
-            for(int j=0;j<lenColumeEachFamily;j++){
-                p.addColumn(Bytes.toBytes(columFamily[i]), Bytes.toBytes(colums[i][j]), Bytes.toBytes(value[index])).setTTL(TTL);
-                index++;
-            }
-        }
+//        p.addColumn(Bytes.toBytes(columFamily[0]), Bytes.toBytes(colums[0][0]), Bytes.toBytes(sysObj.getPhoneNumber())).setTTL(TTL);
+        p.addColumn(Bytes.toBytes(columFamily[0]), Bytes.toBytes(colums[0][0]), Bytes.toBytes(sysObj.getJsonPortPhone())).setTTL(TTL);
+        p.addColumn(Bytes.toBytes(columFamily[0]), Bytes.toBytes(colums[0][1]), Bytes.toBytes(sysObj.getJsonIPDestPhone())).setTTL(TTL);
+        p.addColumn(Bytes.toBytes(columFamily[1]), Bytes.toBytes(colums[1][0]), Bytes.toBytes(sysObj.getiPPrivate())).setTTL(TTL);
+        p.addColumn(Bytes.toBytes(columFamily[1]), Bytes.toBytes(colums[1][1]), Bytes.toBytes(sysObj.getPortPrivate())).setTTL(TTL);
+        p.addColumn(Bytes.toBytes(columFamily[1]), Bytes.toBytes(colums[1][2]), Bytes.toBytes(sysObj.getiPPublic())).setTTL(TTL);
+        p.addColumn(Bytes.toBytes(columFamily[1]), Bytes.toBytes(colums[1][3]), Bytes.toBytes(sysObj.getPortPublic())).setTTL(TTL);
+        p.addColumn(Bytes.toBytes(columFamily[1]), Bytes.toBytes(colums[1][4]), Bytes.toBytes(sysObj.getIpDest())).setTTL(TTL);
+        p.addColumn(Bytes.toBytes(columFamily[1]), Bytes.toBytes(colums[1][5]), Bytes.toBytes(sysObj.getPortDest())).setTTL(TTL);
         try {
             table.put(p);
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
-        return true;
+
     }
     public boolean insertDataMDO(Table table, String keyRow, String[] columFamily, String[][] colums, long TTL, int typeInsert,String []col2, String []value){
         Put p = new Put(Bytes.toBytes(keyRow));

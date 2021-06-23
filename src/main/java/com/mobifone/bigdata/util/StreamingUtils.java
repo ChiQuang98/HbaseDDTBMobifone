@@ -1,8 +1,10 @@
 package com.mobifone.bigdata.util;
 
+import com.mobifone.bigdata.model.Nat;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.json.JSONObject;
 
 import java.io.PrintWriter;
 import java.net.InetAddress;
@@ -15,6 +17,8 @@ public class StreamingUtils {
         try {
             final TCPCLientController clientSocketMDO = new TCPCLientController(InetAddress.getByName(host), port);
             long index = 0;
+
+
             UUID uuid = UUID.randomUUID();
             Table tableMDO = connection.getTable(TableName.valueOf("MDOTable"));
             Date dateCol1, dateCol2, dateCurr;
@@ -26,6 +30,7 @@ public class StreamingUtils {
             while (true) {
                 start = System.currentTimeMillis();
                 String data = clientSocketMDO.readData();
+
                 messageMDOCOUNT++;
                 long finish = System.currentTimeMillis();
                 totalTime += finish - start;
@@ -75,7 +80,8 @@ public class StreamingUtils {
         int countRowMatch = 0;
         try {
             PrintWriter writer = new PrintWriter("LogInsertTime.txt", "UTF-8");
-            writer.println("S");
+
+
             final TCPCLientController clientSocketSYS = new TCPCLientController(InetAddress.getByName(host), port);
             UUID uuid = UUID.randomUUID();
             Table tableSYS = connection.getTable(TableName.valueOf("SYSTable"));
@@ -84,21 +90,31 @@ public class StreamingUtils {
             long start = System.currentTimeMillis();
             long countMessageSYS = 0;
             long totalTime = 0;
+            JSONObject jsonPortPhone,jsonIPDestPhone;
+
             while (true) {
+                jsonPortPhone = new JSONObject();
+                jsonIPDestPhone = new JSONObject();
                 start = System.currentTimeMillis();
                 String data = clientSocketSYS.readData();
+                writer.println(data);
                 long finish = System.currentTimeMillis();
                 totalTime += finish - start;
                 countMessageSYS++;
                 if (totalTime > 1000 ) {
                     System.out.println("Num message SYS: " + countMessageSYS + " | Time: " + totalTime);
                 }
+
+
                 countMessageSYS++;
                 String[] rowData = data.split(",");
+                String portPublic = rowData[5];
+                Nat natObj = new Nat(rowData[2],rowData[3],rowData[4],rowData[5],rowData[6],rowData[7]);
+                natObj.setTimeStamp(rowData[1]);
                 Date dateRowSYS, dateMDOCol1, dateMDOCol2;
                 SimpleDateFormat df = new SimpleDateFormat("yyyyMMddHHmmss");
-                dateRowSYS = df.parse(rowData[1]);
-                Get get = new Get(Bytes.toBytes("KEY|" + rowData[2]));
+                dateRowSYS = df.parse(natObj.getTimeStamp());
+                Get get = new Get(Bytes.toBytes("KEY|" + natObj.getiPPrivate()));
                 get.addFamily(Bytes.toBytes("Info"));
                 get.addFamily(Bytes.toBytes("Times"));
                 get.addFamily(Bytes.toBytes("Type"));
@@ -109,16 +125,31 @@ public class StreamingUtils {
                     String typeBegin = Bytes.toString(result.getValue(Bytes.toBytes("Type"), Bytes.toBytes("TypeBegin")));
                     String phoneMDOCol1 = Bytes.toString(result.getValue(Bytes.toBytes("Info"), Bytes.toBytes("PhoneNumberCol1")));
                     String phoneMDOCol2 = Bytes.toString(result.getValue(Bytes.toBytes("Info"), Bytes.toBytes("PhoneNumberCol2")));
+                    Get getSYS = new Get(Bytes.toBytes(natObj.getiPPublic()));
+                    getSYS.addFamily(Bytes.toBytes("Info"));
+                    Result resultSYS = tableSYS.get(getSYS);
+                    if(!resultSYS.isEmpty()){
+                        String portPhoneStr = Bytes.toString(resultSYS.getValue(Bytes.toBytes("Info"), Bytes.toBytes("PortPhone")));
+                        String ipDestPhoneStr = Bytes.toString(resultSYS.getValue(Bytes.toBytes("Info"), Bytes.toBytes("IPDestPhone")));
+
+                        jsonPortPhone = new JSONObject(portPhoneStr);
+                        jsonIPDestPhone = new JSONObject(ipDestPhoneStr);
+//                        jsonPortPhone.put("")
+                    }
                     if (typeBegin != null && timeStampMDOCol1 != null && phoneMDOCol1 != null && timeStampMDOCol2 != null && phoneMDOCol2 != null) {
                         if (typeBegin.compareToIgnoreCase("Start") == 0) {
                             dateMDOCol1 = df.parse(timeStampMDOCol1);
                             dateMDOCol2 = df.parse(timeStampMDOCol2);
-                            String rowKey = rowData[4] + "_" + rowData[5];
+                            String rowKey = natObj.getiPPublic();
+                            System.out.println(rowKey);
                             if (dateRowSYS.getTime() >= dateMDOCol2.getTime()) {
-                                data = data + "," + phoneMDOCol2;
-                                rowData = data.split(",");
+                                natObj.setPhoneNumber(phoneMDOCol2);
+                                jsonPortPhone.put(natObj.getPortPublic(),phoneMDOCol2);
+                                jsonIPDestPhone.put(natObj.getIpDest(),phoneMDOCol2);
+                                natObj.setJsonPortPhone(jsonPortPhone.toString());
+                                natObj.setJsonIPDestPhone(jsonIPDestPhone.toString());
                                 //Key Pattern: IPPUBLIC_PortPublic
-                                boolean isDone = utilHbase.insertData(tableSYS, rowKey, utilHbase.getNameCFSYS(), utilHbase.getNamecolumSYS(), TTL, rowData);
+                                boolean isDone = utilHbase.insertData(tableSYS, rowKey, utilHbase.getNameCFSYS(), utilHbase.getNamecolumSYS(), TTL, natObj);
                                 if (isDone) {
                                     countRowMatch++;
                                     finish = System.currentTimeMillis();
@@ -129,16 +160,19 @@ public class StreamingUtils {
                                     writer.println(log);
                                 }
                             } else if (dateRowSYS.getTime() >= dateMDOCol1.getTime()) {
-                                data = data + "," + phoneMDOCol1;
-                                rowData = data.split(",");
+                                natObj.setPhoneNumber(phoneMDOCol1);
+                                jsonPortPhone.put(natObj.getPortPublic(),phoneMDOCol1);
+                                jsonIPDestPhone.put(natObj.getIpDest(),phoneMDOCol1);
+                                natObj.setJsonPortPhone(jsonPortPhone.toString());
+                                natObj.setJsonIPDestPhone(jsonIPDestPhone.toString());
                                 //Key Pattern: IPPUBLIC_PortPublic
-                                boolean isDone = utilHbase.insertData(tableSYS, rowKey, utilHbase.getNameCFSYS(), utilHbase.getNamecolumSYS(), TTL, rowData);
+                                boolean isDone = utilHbase.insertData(tableSYS, rowKey, utilHbase.getNameCFSYS(), utilHbase.getNamecolumSYS(), TTL, natObj);
                                 if (isDone) {
                                     countRowMatch++;
                                     finish = System.currentTimeMillis();
 //                                    System.out.println("TIME Before - After: " + start + " | " + finish);
                                     long timeElapsed = finish - start;
-                                    String log = "Inserted PhoneNumber:"+phoneMDOCol2+" With (IpPublic: "+rowData[4]+"| PortPublic: "+rowData[5]+") to Table SYS: "  + " In: " + timeElapsed;
+                                    String log = "Inserted PhoneNumber:"+phoneMDOCol1+" With (IpPublic: "+rowData[4]+"| PortPublic: "+rowData[5]+") to Table SYS: "  + " In: " + timeElapsed;
 //                                    System.out.println(log);
                                     writer.println(log);
                                 }

@@ -4,8 +4,10 @@ import com.mobifone.bigdata.util.Utils;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.json.JSONObject;
 
 import java.io.IOException;
+import java.util.Iterator;
 
 public class HbaseAPI {
     private static HbaseAPI instance;
@@ -15,12 +17,13 @@ public class HbaseAPI {
         }
         return new HbaseAPI();
     }
-    public boolean GetPhoneNumber(String ipPublic, int portPublic,String phone)  {
+    public boolean CheckPhoneNumberPortPublic(String ipPublic, String phone, int portPublic)  {
         Utils utilHbase = Utils.getInstance();
+        JSONObject jsonPortPhone;
         try{
             Connection connection = utilHbase.GetConnectionHbase();
             Table tableSYS = connection.getTable(TableName.valueOf("SYSTable"));
-            String rowKey = ipPublic+"_"+portPublic;
+            String rowKey = ipPublic;
             Get get = new Get(Bytes.toBytes(rowKey));
             get.addFamily(Bytes.toBytes("Info"));
             Result result = tableSYS.get(get);
@@ -28,19 +31,60 @@ public class HbaseAPI {
                 return false;
             }
             else{
-                String phoneNumber = Bytes.toString(result.getValue(Bytes.toBytes("Info"),Bytes.toBytes("PhoneNumber")));
-                if (phoneNumber==null){
+                String portPhoneStr = Bytes.toString(result.getValue(Bytes.toBytes("Info"),Bytes.toBytes("PortPhone")));
+                if (portPhoneStr==null){
                     return false;
+                } else {
+                    jsonPortPhone = new JSONObject(portPhoneStr);
+                    String phoneNumber = jsonPortPhone.getString(Integer.toString(portPublic));
+                    if (phoneNumber.compareToIgnoreCase(phone)==0){
+                        return true;
+                    } else {
+                        return false;
+                    }
                 }
-                if (phoneNumber.equalsIgnoreCase(phone)){
-                    return true;
-                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+    public boolean CheckPhoneNumberWithoutPortPublic(String ipPublic, String phone)  {
+        Utils utilHbase = Utils.getInstance();
+        JSONObject jsonPortPhone;
+        try{
+            Connection connection = utilHbase.GetConnectionHbase();
+            Table tableSYS = connection.getTable(TableName.valueOf("SYSTable"));
+            String rowKey = ipPublic;
+            Get get = new Get(Bytes.toBytes(rowKey));
+            get.addFamily(Bytes.toBytes("Info"));
+            Result result = tableSYS.get(get);
+            if (result.isEmpty()){
                 return false;
+            }
+            else{
+                String portPhoneStr = Bytes.toString(result.getValue(Bytes.toBytes("Info"),Bytes.toBytes("PortPhone")));
+                if (portPhoneStr==null){
+                    return false;
+                } else {
+                    jsonPortPhone = new JSONObject(portPhoneStr);
+                    Iterator<String> keys = jsonPortPhone.keys();
+                    while (keys.hasNext()){
+                        String keyPort = keys.next();
+                        String phoneNumber = jsonPortPhone.getString(keyPort);
+                        if (phoneNumber.compareToIgnoreCase(phone)==0){
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
             return false;
         }
+        return false;
     }
     public void GetRowsByIPSYS(String ipPrivate, int portPrivate, String timeStamp) throws IOException {
 
