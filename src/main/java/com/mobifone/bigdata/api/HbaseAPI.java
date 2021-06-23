@@ -17,9 +17,9 @@ public class HbaseAPI {
         }
         return new HbaseAPI();
     }
-    public boolean CheckPhoneNumberPortPublic(String ipPublic, String phone, int portPublic)  {
+    public String CheckPhoneNumberPortPublic(String ipPublic, String phone, int portPublic)  {
         Utils utilHbase = Utils.getInstance();
-        JSONObject jsonPortPhone;
+        JSONObject jsonPortPhone,jsonSubPortPhone;
         try{
             Connection connection = utilHbase.GetConnectionHbase();
             Table tableSYS = connection.getTable(TableName.valueOf("SYSTable"));
@@ -28,30 +28,34 @@ public class HbaseAPI {
             get.addFamily(Bytes.toBytes("Info"));
             Result result = tableSYS.get(get);
             if (result.isEmpty()){
-                return false;
+                return null;
             }
             else{
                 String portPhoneStr = Bytes.toString(result.getValue(Bytes.toBytes("Info"),Bytes.toBytes("PortPhone")));
+
                 if (portPhoneStr==null){
-                    return false;
+                    return null;
                 } else {
                     jsonPortPhone = new JSONObject(portPhoneStr);
-                    String phoneNumber = jsonPortPhone.getString(Integer.toString(portPublic));
+                    jsonSubPortPhone = jsonPortPhone.getJSONObject(Integer.toString(portPublic));
+//                    System.out.println(jsonSubPortPhone.toString());
+                    String phoneNumber = jsonSubPortPhone.getString("PhoneNumber");
+                    String timeStamp = jsonSubPortPhone.getString("Timestamp");
                     if (phoneNumber.compareToIgnoreCase(phone)==0){
-                        return true;
+                        return timeStamp;
                     } else {
-                        return false;
+                        return null;
                     }
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
     }
-    public boolean CheckPhoneNumberWithoutPortPublic(String ipPublic, String phone)  {
+    public String CheckPhoneNumberWithoutPortPublic(String ipPublic, String phone)  {
         Utils utilHbase = Utils.getInstance();
-        JSONObject jsonPortPhone;
+        JSONObject jsonPortPhone,jsonSubPortPhone;
         try{
             Connection connection = utilHbase.GetConnectionHbase();
             Table tableSYS = connection.getTable(TableName.valueOf("SYSTable"));
@@ -60,31 +64,34 @@ public class HbaseAPI {
             get.addFamily(Bytes.toBytes("Info"));
             Result result = tableSYS.get(get);
             if (result.isEmpty()){
-                return false;
+                return null;
             }
             else{
                 String portPhoneStr = Bytes.toString(result.getValue(Bytes.toBytes("Info"),Bytes.toBytes("PortPhone")));
+                System.out.println(portPhoneStr);
                 if (portPhoneStr==null){
-                    return false;
+                    return null;
                 } else {
                     jsonPortPhone = new JSONObject(portPhoneStr);
                     Iterator<String> keys = jsonPortPhone.keys();
                     while (keys.hasNext()){
                         String keyPort = keys.next();
-                        String phoneNumber = jsonPortPhone.getString(keyPort);
+                        jsonSubPortPhone = jsonPortPhone.getJSONObject(keyPort);
+                        String phoneNumber = jsonSubPortPhone.getString("PhoneNumber");
+                        String timeStamp = jsonSubPortPhone.getString("Timestamp");
                         if (phoneNumber.compareToIgnoreCase(phone)==0){
-                            return true;
+                            return timeStamp;
                         } else {
-                            return false;
+                            return null;
                         }
                     }
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
-            return false;
+            return null;
         }
-        return false;
+        return null;
     }
     public void GetRowsByIPSYS(String ipPrivate, int portPrivate, String timeStamp) throws IOException {
 

@@ -1,9 +1,11 @@
 package com.mobifone.bigdata.util;
 
+import com.mobifone.bigdata.TestAPI;
 import com.mobifone.bigdata.model.Nat;
 import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
 import java.io.PrintWriter;
@@ -13,12 +15,11 @@ import java.util.Date;
 import java.util.UUID;
 
 public class StreamingUtils {
+    private static final Logger logger = Logger.getLogger(StreamingUtils.class);
     public void ProcessingStreamMDO(Utils utilHbase, Connection connection, long TTLMDO, String host, int port) {
         try {
             final TCPCLientController clientSocketMDO = new TCPCLientController(InetAddress.getByName(host), port);
             long index = 0;
-
-
             UUID uuid = UUID.randomUUID();
             Table tableMDO = connection.getTable(TableName.valueOf("MDOTable"));
             Date dateCol1, dateCol2, dateCurr;
@@ -30,19 +31,19 @@ public class StreamingUtils {
             while (true) {
                 start = System.currentTimeMillis();
                 String data = clientSocketMDO.readData();
-
-                messageMDOCOUNT++;
+//                System.out.println(data);
                 long finish = System.currentTimeMillis();
                 totalTime += finish - start;
-                if (totalTime > 1000) {
-                    System.out.println("Num message MDO: " + messageMDOCOUNT + " | Time: " + totalTime);
-                }
-                String[] rowData = data.split("\\|");
+//                if (totalTime > 1000) {
+//                    System.out.println("Num message MDO: " + messageMDOCOUNT + " | Time: " + totalTime);
+//                }
+                String[] rowData = data.split(",");
                 dateCurr = df.parse(rowData[0]);
                 if (rowData.length < 5) {
                     continue;
                 }
                 String rowName = "KEY|" + rowData[4];
+//                System.out.println(rowName);
 //                System.out.println(rowName);
                 Get get = new Get(Bytes.toBytes(rowName));
                 get.addFamily(Bytes.toBytes("Info"));
@@ -72,6 +73,7 @@ public class StreamingUtils {
             }
         } catch (Exception e) {
             e.printStackTrace();
+//            logger.error(e.getMessage());
             System.exit(1);
         }
     }
@@ -90,23 +92,21 @@ public class StreamingUtils {
             long start = System.currentTimeMillis();
             long countMessageSYS = 0;
             long totalTime = 0;
-            JSONObject jsonPortPhone,jsonIPDestPhone;
-
+            JSONObject jsonPortPhone,jsonIPDestPhone,jsonSubPortPhone;
             while (true) {
                 jsonPortPhone = new JSONObject();
                 jsonIPDestPhone = new JSONObject();
+                jsonSubPortPhone = new JSONObject();
                 start = System.currentTimeMillis();
                 String data = clientSocketSYS.readData();
                 writer.println(data);
                 long finish = System.currentTimeMillis();
                 totalTime += finish - start;
                 countMessageSYS++;
-                if (totalTime > 1000 ) {
-                    System.out.println("Num message SYS: " + countMessageSYS + " | Time: " + totalTime);
-                }
+//                if (totalTime > 1000 ) {
+//                    System.out.println("Num message SYS: " + countMessageSYS + " | Time: " + totalTime);
+//                }
 
-
-                countMessageSYS++;
                 String[] rowData = data.split(",");
                 String portPublic = rowData[5];
                 Nat natObj = new Nat(rowData[2],rowData[3],rowData[4],rowData[5],rowData[6],rowData[7]);
@@ -131,8 +131,8 @@ public class StreamingUtils {
                     if(!resultSYS.isEmpty()){
                         String portPhoneStr = Bytes.toString(resultSYS.getValue(Bytes.toBytes("Info"), Bytes.toBytes("PortPhone")));
                         String ipDestPhoneStr = Bytes.toString(resultSYS.getValue(Bytes.toBytes("Info"), Bytes.toBytes("IPDestPhone")));
-
                         jsonPortPhone = new JSONObject(portPhoneStr);
+                        jsonSubPortPhone =  jsonPortPhone.getJSONObject(natObj.getPortPublic());
                         jsonIPDestPhone = new JSONObject(ipDestPhoneStr);
 //                        jsonPortPhone.put("")
                     }
@@ -142,10 +142,14 @@ public class StreamingUtils {
                             dateMDOCol2 = df.parse(timeStampMDOCol2);
                             String rowKey = natObj.getiPPublic();
                             System.out.println(rowKey);
+
                             if (dateRowSYS.getTime() >= dateMDOCol2.getTime()) {
                                 natObj.setPhoneNumber(phoneMDOCol2);
-                                jsonPortPhone.put(natObj.getPortPublic(),phoneMDOCol2);
+                                jsonSubPortPhone.put("Timestamp",natObj.getTimeStamp());
+                                jsonSubPortPhone.put("PhoneNumber",natObj.getPhoneNumber());
+                                jsonPortPhone.put(natObj.getPortPublic(),jsonSubPortPhone);
                                 jsonIPDestPhone.put(natObj.getIpDest(),phoneMDOCol2);
+//                                System.out.println(jsonPortPhone.toString());
                                 natObj.setJsonPortPhone(jsonPortPhone.toString());
                                 natObj.setJsonIPDestPhone(jsonIPDestPhone.toString());
                                 //Key Pattern: IPPUBLIC_PortPublic
@@ -156,13 +160,17 @@ public class StreamingUtils {
 //                                    System.out.println("TIME Before - After: " + start + " | " + finish);
                                     long timeElapsed = finish - start;
                                     String log = "Inserted PhoneNumber:"+phoneMDOCol2+" With (IpPublic: "+rowData[4]+"| PortPublic: "+rowData[5]+") to Table SYS: "  + " In: " + timeElapsed;
-//                                    System.out.println(log);
+                                    System.out.println(log);
+                                    logger.info(log);
                                     writer.println(log);
                                 }
                             } else if (dateRowSYS.getTime() >= dateMDOCol1.getTime()) {
                                 natObj.setPhoneNumber(phoneMDOCol1);
-                                jsonPortPhone.put(natObj.getPortPublic(),phoneMDOCol1);
+                                jsonSubPortPhone.put("Timestamp",natObj.getTimeStamp());
+                                jsonSubPortPhone.put("PhoneNumber",natObj.getPhoneNumber());
+                                jsonPortPhone.put(natObj.getPortPublic(),jsonSubPortPhone);
                                 jsonIPDestPhone.put(natObj.getIpDest(),phoneMDOCol1);
+//                                System.out.println(jsonPortPhone.toString());
                                 natObj.setJsonPortPhone(jsonPortPhone.toString());
                                 natObj.setJsonIPDestPhone(jsonIPDestPhone.toString());
                                 //Key Pattern: IPPUBLIC_PortPublic
@@ -173,13 +181,15 @@ public class StreamingUtils {
 //                                    System.out.println("TIME Before - After: " + start + " | " + finish);
                                     long timeElapsed = finish - start;
                                     String log = "Inserted PhoneNumber:"+phoneMDOCol1+" With (IpPublic: "+rowData[4]+"| PortPublic: "+rowData[5]+") to Table SYS: "  + " In: " + timeElapsed;
-//                                    System.out.println(log);
+                                    System.out.println(log);
+                                    logger.info(log);
                                     writer.println(log);
                                 }
                             }
                         }
                     }
                 }
+//                System.out.println(countRowMatch);
             }
         } catch (Exception e) {
             e.printStackTrace();

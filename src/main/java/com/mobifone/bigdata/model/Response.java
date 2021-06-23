@@ -7,7 +7,9 @@ public class Response {
     public Response(String status, String data) {
         this.status = status;
         this.data = data;
+
     }
+
 
     public String getStatus() {
         return status;

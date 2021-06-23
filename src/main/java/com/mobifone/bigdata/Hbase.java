@@ -3,12 +3,13 @@ package com.mobifone.bigdata;
 import com.mobifone.bigdata.util.StreamingUtils;
 import com.mobifone.bigdata.util.Utils;
 import org.apache.hadoop.hbase.client.*;
-
+import org.apache.log4j.Logger;
 
 
 import java.io.IOException;
 
 class HBase {
+    private static final Logger logger = Logger.getLogger(HBase.class);
     public static void main(String[] args) throws IOException, Exception {
         try {
             Utils utilHbase = Utils.getInstance();

@@ -2,9 +2,7 @@ package com.mobifone.bigdata.util;
 
 
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
 
@@ -14,8 +12,8 @@ import java.net.Socket;
  */
 public class TCPCLientController {
     private Socket socket;
-    private ObjectInputStream ois;
-    private ObjectOutputStream oos;
+    private BufferedReader ois;
+
     public TCPCLientController(InetAddress IP, int port){
         System.out.println("Clien TCP with"+port+ "is running");
         try{
@@ -28,15 +26,14 @@ public class TCPCLientController {
     }
     public void getStream(){
         try{
-            ois = new ObjectInputStream(socket.getInputStream());
-            oos = new ObjectOutputStream(socket.getOutputStream());
+            ois = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         }catch(Exception e){
             e.printStackTrace();
         }
     }
 
     public String readData() throws IOException, ClassNotFoundException {
-        return (String) ois.readObject();
+        return (String) ois.readLine();
     }
 
 
