@@ -144,11 +144,11 @@ public class Utils {
                 }
                 try {
                     table.put(p);
+                    return true;
                 } catch (IOException e) {
                     e.printStackTrace();
                     return false;
                 }
-                return true;
             case typeMDOExistCol1Curr:
                 for(int i=0;i<lenColumFamily;i++){
                     int lenColumEachFamily = colums[i].length;

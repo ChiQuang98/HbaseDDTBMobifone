@@ -27,7 +27,6 @@ public class HbaseController {
         String ipPublic = request.getAddress();
         int portPublic = request.getPort();
         String timeStamp = null;
-//        System.out.println("QUANGHAHAHA"+portPublic);
         String phoneNumber = request.getMsisdn();
         if (portPublic==0){
             timeStamp = hbaseAPI.CheckPhoneNumberWithoutPortPublic(ipPublic,phoneNumber);

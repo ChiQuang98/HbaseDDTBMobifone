@@ -81,17 +81,15 @@ public class HbaseAPI {
                         String timeStamp = jsonSubPortPhone.getString("Timestamp");
                         if (phoneNumber.compareToIgnoreCase(phone)==0){
                             return timeStamp;
-                        } else {
-                            return null;
                         }
                     }
+                    return null;
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
-        return null;
     }
     public void GetRowsByIPSYS(String ipPrivate, int portPrivate, String timeStamp) throws IOException {
 

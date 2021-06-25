@@ -1,8 +1,9 @@
 package com.mobifone.bigdata;
 
 import com.mobifone.bigdata.util.StreamingUtils;
+import com.mobifone.bigdata.util.TCPServerController;
 import com.mobifone.bigdata.util.Utils;
-import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.client.Connection;
 import org.apache.log4j.Logger;
 
 
@@ -23,14 +24,37 @@ class HBase {
             String host = "10.4.200.61";
             int portMDO = 11000;
             int portSYS = 11001;
-            //MDO Data Streaming
-            new Thread(() -> {
-                streamingUtils.ProcessingStreamMDO(utilHbase,connection,TTLMDO,host,portMDO);
-            }).start();
-            new Thread(() -> {
-               streamingUtils.ProcessingStreamSYS(utilHbase,connection,TTLSYS,host,portSYS);
+            new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        final TCPServerController server1 = new TCPServerController(portMDO);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
 
+                }
             }).start();
+
+
+            new Thread(new Runnable() {
+                public void run() {
+                    try {
+                        final TCPServerController server2 = new TCPServerController(portSYS);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }).start();
+
+
+//            new Thread(() -> {
+//                streamingUtils.ProcessingStreamMDO(utilHbase,connection,TTLMDO,host,portMDO);
+//            }).start();
+//            new Thread(() -> {
+//               streamingUtils.ProcessingStreamSYS(utilHbase,connection,TTLSYS,host,portSYS);
+//
+//            }).start();
         } catch (Exception exp) {
             System.out.println("fail");
             System.out.println("" + exp.getMessage());
