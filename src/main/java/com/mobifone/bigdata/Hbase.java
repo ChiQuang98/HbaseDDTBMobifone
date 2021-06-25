@@ -1,7 +1,7 @@
 package com.mobifone.bigdata;
 
 import com.mobifone.bigdata.util.StreamingUtils;
-import com.mobifone.bigdata.util.TCPServerController;
+import com.mobifone.bigdata.util.TCPSocketServer;
 import com.mobifone.bigdata.util.Utils;
 import org.apache.hadoop.hbase.client.Connection;
 import org.apache.log4j.Logger;
@@ -14,7 +14,7 @@ class HBase {
     public static void main(String[] args) throws IOException, Exception {
         try {
             Utils utilHbase = Utils.getInstance();
-            StreamingUtils streamingUtils = new StreamingUtils();
+            StreamingUtils streamingUtils = StreamingUtils.getInstance();
             Connection connection = utilHbase.GetConnectionHbase();
             utilHbase.CreateTableHbase("MDOTable",connection,utilHbase.getNameCFMDO());
             utilHbase.CreateTableHbase("SYSTable",connection,utilHbase.getNameCFSYS());
@@ -27,7 +27,7 @@ class HBase {
             new Thread(new Runnable() {
                 public void run() {
                     try {
-                        final TCPServerController server1 = new TCPServerController(portMDO);
+                        final TCPSocketServer server1 = new TCPSocketServer(portMDO,TTLMDO,TTLSYS);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -39,7 +39,7 @@ class HBase {
             new Thread(new Runnable() {
                 public void run() {
                     try {
-                        final TCPServerController server2 = new TCPServerController(portSYS);
+                        final TCPSocketServer server2 = new TCPSocketServer(portSYS,TTLMDO,TTLSYS);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
