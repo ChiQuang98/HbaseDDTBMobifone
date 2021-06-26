@@ -27,7 +27,7 @@ public class ThreadWorkerMDO implements Runnable {
             Connection connection = utilHbase.GetConnectionHbase();
             new StreamingUtils().writeDataMDO(arrList,tableMDO,utilHbase,TTL);
         } catch (IOException | ParseException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
     }

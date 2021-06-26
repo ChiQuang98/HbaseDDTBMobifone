@@ -21,7 +21,6 @@ class HBase {
             long TTLSYS = 3*60*60*1000;
 //            long TTLMDO = 7*24*60*60*1000;
             long TTLMDO = 60*1000;
-            String host = "10.4.200.61";
             int portMDO = 11000;
             int portSYS = 11001;
             new Thread(new Runnable() {
@@ -29,7 +28,7 @@ class HBase {
                     try {
                         final TCPSocketServer server1 = new TCPSocketServer(portMDO,TTLMDO,TTLSYS);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        //e.printStackTrace();
                     }
 
                 }
@@ -41,7 +40,7 @@ class HBase {
                     try {
                         final TCPSocketServer server2 = new TCPSocketServer(portSYS,TTLMDO,TTLSYS);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        //e.printStackTrace();
                     }
 
                 }

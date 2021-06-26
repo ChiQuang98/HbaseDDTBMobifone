@@ -25,7 +25,7 @@ public class TCPSocketServer {
                 System.out.println("Server TCP with port : " + port + " is running...");
                 listening(port,TTLMDO,TTLSYS);
             } catch (Exception e) {
-                e.printStackTrace();
+                //e.printStackTrace();
             }
         }
     }
@@ -40,7 +40,7 @@ public class TCPSocketServer {
                 executorService.execute(threadClientSocket);
             } catch (Exception e) {
                 clientSocket.close();
-                e.printStackTrace();
+                //e.printStackTrace();
             }
         }
     }

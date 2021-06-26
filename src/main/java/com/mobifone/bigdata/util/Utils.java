@@ -117,7 +117,7 @@ public class Utils {
             table.put(p);
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return false;
         }
 
@@ -146,7 +146,7 @@ public class Utils {
                     table.put(p);
                     return true;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                     return false;
                 }
             case typeMDOExistCol1Curr:
@@ -171,7 +171,7 @@ public class Utils {
                     table.put(p);
                     return true;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                     return false;
                 }
             case typeMDOExistCol2Curr:
@@ -198,7 +198,7 @@ public class Utils {
                     table.put(p);
                     return true;
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    //e.printStackTrace();
                     return false;
                 }
         }

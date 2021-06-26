@@ -44,7 +44,7 @@ public class ThreadWorkerSocketClient implements Runnable{
                 streamingUtils.ProcessingStreamSYS(utilHbase,connection,TTLSYS,ois);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
     }

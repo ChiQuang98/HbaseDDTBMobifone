@@ -28,7 +28,7 @@ public class ThreadWorkerNats implements Runnable {
             Connection connection = utilHbase.GetConnectionHbase();
             new StreamingUtils().MappingDataNat(arrList,tableMDO,tableSYS,utilHbase,TTL);
         } catch (IOException | ParseException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
     }

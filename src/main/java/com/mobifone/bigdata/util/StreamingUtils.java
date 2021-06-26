@@ -20,6 +20,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicLong;
 
 public class StreamingUtils {
     private int levelLine2 = 2000;
@@ -27,7 +28,7 @@ public class StreamingUtils {
     private int levelLine6 = 6000;
     private int levelLine8 = 8000;
     private int levelLine10 = 10000;
-
+//    private  volatile AtomicLong counterTimeNats = new AtomicLong(0);
     private static final Logger logger = Logger.getLogger(StreamingUtils.class);
     private static StreamingUtils instance;
     public static StreamingUtils getInstance(){
@@ -53,11 +54,6 @@ public class StreamingUtils {
 //                    System.out.println(data);
                     List<String> arrData = Arrays.asList(data.split("\n"));
                     int len = arrData.size();
-//                    int pivot1 = len/3;
-//                    int pivot2 = pivot1*2;
-//                    List<String>  dataSplit1 = arrData.subList(0,pivot1);
-//                    List<String>  dataSplit2 = arrData.subList(pivot1,pivot2);
-//                    List<String> dataSplit3 = arrData.subList(pivot2,len);
                     if(len<=levelLine2){
                         ThreadWorkerMDO threadWorkerMDO = new ThreadWorkerMDO(TTLMDO,tableMDO,arrData);
                         executorService.execute(threadWorkerMDO);
@@ -70,18 +66,6 @@ public class StreamingUtils {
                         executorService.execute(threadWorkerMDO1);
                         executorService.execute(threadWorkerMDO2);
                     } else if(len<=levelLine6){
-                        int pivot1 = len/3;
-                        int pivot2 = pivot1*2;
-                        List<String>  dataSplit1 = arrData.subList(0,pivot1);
-                        List<String>  dataSplit2 = arrData.subList(pivot1,pivot2);
-                        List<String> dataSplit3 = arrData.subList(pivot2,len);
-                        ThreadWorkerMDO threadWorkerMDO1 = new ThreadWorkerMDO(TTLMDO,tableMDO,dataSplit1);
-                        ThreadWorkerMDO threadWorkerMDO2 = new ThreadWorkerMDO(TTLMDO,tableMDO,dataSplit2);
-                        ThreadWorkerMDO threadWorkerMDO3 = new ThreadWorkerMDO(TTLMDO,tableMDO,dataSplit3);
-                        executorService.execute(threadWorkerMDO1);
-                        executorService.execute(threadWorkerMDO2);
-                        executorService.execute(threadWorkerMDO3);
-                    } else if( len<= levelLine8){
                         int pivot1 = len/4;
                         int pivot2 = pivot1 * 2;
                         int pivot3 = pivot1*3;
@@ -97,7 +81,7 @@ public class StreamingUtils {
                         executorService.execute(threadWorkerMDO2);
                         executorService.execute(threadWorkerMDO3);
                         executorService.execute(threadWorkerMDO4);
-                    } else {
+                    } else if( len<= levelLine8){
                         int pivot1 = len/5;
                         int pivot2 = pivot1 * 2;
                         int pivot3 = pivot1*3;
@@ -117,15 +101,39 @@ public class StreamingUtils {
                         executorService.execute(threadWorkerMDO3);
                         executorService.execute(threadWorkerMDO4);
                         executorService.execute(threadWorkerMDO5);
+                    } else {
+                        int pivot1 = len/6;
+                        int pivot2 = pivot1 * 2;
+                        int pivot3 = pivot1*3;
+                        int pivot4 = pivot1*4;
+                        int pivot5 = pivot1*5;
+                        List<String>  dataSplit1 = arrData.subList(0,pivot1);
+                        List<String>  dataSplit2 = arrData.subList(pivot1,pivot2);
+                        List<String> dataSplit3 = arrData.subList(pivot2,pivot3);
+                        List<String> dataSplit4 = arrData.subList(pivot3,pivot4);
+                        List<String> dataSplit5 = arrData.subList(pivot4,pivot5);
+                        List<String> dataSplit6 = arrData.subList(pivot5,len);
+                        ThreadWorkerMDO threadWorkerMDO1 = new ThreadWorkerMDO(TTLMDO,tableMDO,dataSplit1);
+                        ThreadWorkerMDO threadWorkerMDO2 = new ThreadWorkerMDO(TTLMDO,tableMDO,dataSplit2);
+                        ThreadWorkerMDO threadWorkerMDO3 = new ThreadWorkerMDO(TTLMDO,tableMDO,dataSplit3);
+                        ThreadWorkerMDO threadWorkerMDO4 = new ThreadWorkerMDO(TTLMDO,tableMDO,dataSplit4);
+                        ThreadWorkerMDO threadWorkerMDO5 = new ThreadWorkerMDO(TTLMDO,tableMDO,dataSplit5);
+                        ThreadWorkerMDO threadWorkerMDO6 = new ThreadWorkerMDO(TTLMDO,tableMDO,dataSplit6);
+                        executorService.execute(threadWorkerMDO1);
+                        executorService.execute(threadWorkerMDO2);
+                        executorService.execute(threadWorkerMDO3);
+                        executorService.execute(threadWorkerMDO4);
+                        executorService.execute(threadWorkerMDO5);
+                        executorService.execute(threadWorkerMDO6);
                     }
                 } catch (Exception e){
-                    e.printStackTrace();
+                    //e.printStackTrace();
                     break;
                 }
 
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
 //            logger.error(e.getMessage());
             System.exit(1);
         }
@@ -148,7 +156,7 @@ public class StreamingUtils {
             ExecutorService executorService = threadpoolNats.getExecutorService();
             while (true) {
                 try{
-
+//                    counterTimeNats.set(0);
                     String data = (String) os.readObject();
 //                    System.out.println(data);
                     List<String> arrData = Arrays.asList(data.split("\n"));
@@ -165,18 +173,6 @@ public class StreamingUtils {
                         executorService.execute(threadWorkerNats1);
                         executorService.execute(threadWorkerNats2);
                     } else if(len<=levelLine6){
-                        int pivot1 = len/3;
-                        int pivot2 = pivot1*2;
-                        List<String>  dataSplit1 = arrData.subList(0,pivot1);
-                        List<String>  dataSplit2 = arrData.subList(pivot1,pivot2);
-                        List<String> dataSplit3 = arrData.subList(pivot2,len);
-                        ThreadWorkerNats threadWorkerNats1 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit1);
-                        ThreadWorkerNats threadWorkerNats2 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit2);
-                        ThreadWorkerNats threadWorkerNats3 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit3);
-                        executorService.execute(threadWorkerNats1);
-                        executorService.execute(threadWorkerNats2);
-                        executorService.execute(threadWorkerNats3);
-                    } else if( len<= levelLine8){
                         int pivot1 = len/4;
                         int pivot2 = pivot1 * 2;
                         int pivot3 = pivot1*3;
@@ -192,7 +188,7 @@ public class StreamingUtils {
                         executorService.execute(threadWorkerNats2);
                         executorService.execute(threadWorkerNats3);
                         executorService.execute(threadWorkerNats4);
-                    } else {
+                    } else if( len<= levelLine8){
                         int pivot1 = len/5;
                         int pivot2 = pivot1 * 2;
                         int pivot3 = pivot1*3;
@@ -212,17 +208,41 @@ public class StreamingUtils {
                         executorService.execute(threadWorkerNats3);
                         executorService.execute(threadWorkerNats4);
                         executorService.execute(threadWorkerNats5);
+                    } else {
+                        int pivot1 = len/6;
+                        int pivot2 = pivot1 * 2;
+                        int pivot3 = pivot1*3;
+                        int pivot4 = pivot1*4;
+                        int pivot5 = pivot1*5;
+                        List<String>  dataSplit1 = arrData.subList(0,pivot1);
+                        List<String>  dataSplit2 = arrData.subList(pivot1,pivot2);
+                        List<String> dataSplit3 = arrData.subList(pivot2,pivot3);
+                        List<String> dataSplit4 = arrData.subList(pivot3,pivot4);
+                        List<String> dataSplit5 = arrData.subList(pivot4,pivot5);
+                        List<String> dataSplit6 = arrData.subList(pivot5,len);
+                        ThreadWorkerNats threadWorkerNats1 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit1);
+                        ThreadWorkerNats threadWorkerNats2 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit2);
+                        ThreadWorkerNats threadWorkerNats3 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit3);
+                        ThreadWorkerNats threadWorkerNats4 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit4);
+                        ThreadWorkerNats threadWorkerNats5 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit5);
+                        ThreadWorkerNats threadWorkerNats6 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit6);
+                        executorService.execute(threadWorkerNats1);
+                        executorService.execute(threadWorkerNats2);
+                        executorService.execute(threadWorkerNats3);
+                        executorService.execute(threadWorkerNats4);
+                        executorService.execute(threadWorkerNats5);
+                        executorService.execute(threadWorkerNats6);
                     }
                     long end = System.currentTimeMillis();
-
+//                    System.out.println("TIME========: "+counterTimeNats.get());
                 } catch (Exception e){
-                    e.printStackTrace();
+                    //e.printStackTrace();
                     break;
                 }
 
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
     }
 
@@ -271,7 +291,7 @@ public class StreamingUtils {
                         jsonSubPortPhone =  jsonPortPhone.getJSONObject(natObj.getPortPublic());
                         jsonSubPortPhone = new JSONObject();
                     } catch (Exception e){
-                        e.printStackTrace();
+                        //e.printStackTrace();
                     }
                     jsonIPDestPhone = new JSONObject(ipDestPhoneStr);
 //                        jsonPortPhone.put("")
@@ -330,8 +350,9 @@ public class StreamingUtils {
             }
         }
         long end = System.currentTimeMillis();
-        System.out.println("QUANG TIME: "+(end-start));
-        System.out.println("QUANG COUNT: "+countRowMatch);
+//        counterTimeNats.addAndGet((end-start));
+//        System.out.println("QUANG TIME: "+(end-start));
+//        System.out.println("QUANG COUNT: "+countRowMatch);
     }
     public void writeDataMDO(List<String> dataList,Table tableMDO,Utils utilHbase,long TTLMDO) throws ParseException, IOException {
         String[] col2 = {"", ""};
@@ -347,7 +368,7 @@ public class StreamingUtils {
             } catch (Exception e){
                 System.out.println(data);
                 System.out.println("DATE" + rowData[0]);
-                e.printStackTrace();
+                //e.printStackTrace();
                 continue;
             }
 
