@@ -140,11 +140,7 @@ public class StreamingUtils {
     }
 
     public void ProcessingStreamSYS(Utils utilHbase, Connection connection, long TTL, ObjectInputStream os) {
-
         try {
-//            PrintWriter writer = new PrintWriter("LogInsertTime.txt", "UTF-8");
-
-
             UUID uuid = UUID.randomUUID();
             Table tableSYS = connection.getTable(TableName.valueOf("SYSTable"));
             Table tableMDO = connection.getTable(TableName.valueOf("MDOTable"));
@@ -156,15 +152,10 @@ public class StreamingUtils {
             ExecutorService executorService = threadpoolNats.getExecutorService();
             while (true) {
                 try{
-//                    counterTimeNats.set(0);
                     String data = (String) os.readObject();
-//                    System.out.println(data);
                     List<String> arrData = Arrays.asList(data.split("\n"));
                     int len = arrData.size();
                     if(len<=levelLine2){
-                        ThreadWorkerNats threadWorkerNats = new ThreadWorkerNats(TTL,tableSYS,tableMDO,arrData);
-                        executorService.execute(threadWorkerNats);
-                    } else if(len <= levelLine4){
                         int pivot = len/2;
                         List<String>  dataSplit1 = arrData.subList(0,pivot);
                         List<String>  dataSplit2 = arrData.subList(pivot,len);
@@ -172,23 +163,19 @@ public class StreamingUtils {
                         ThreadWorkerNats threadWorkerNats2 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit2);
                         executorService.execute(threadWorkerNats1);
                         executorService.execute(threadWorkerNats2);
-                    } else if(len<=levelLine6){
-                        int pivot1 = len/4;
-                        int pivot2 = pivot1 * 2;
-                        int pivot3 = pivot1*3;
-                        List<String>  dataSplit1 = arrData.subList(0,pivot1);
-                        List<String>  dataSplit2 = arrData.subList(pivot1,pivot2);
-                        List<String> dataSplit3 = arrData.subList(pivot2,pivot3);
-                        List<String> dataSplit4 = arrData.subList(pivot3,len);
+                    } else if(len <= levelLine4){
+                        int pivot = len/3;
+                        int pivot1 = pivot * 2;
+                        List<String>  dataSplit1 = arrData.subList(0,pivot);
+                        List<String>  dataSplit2 = arrData.subList(pivot,pivot1);
+                        List<String>  dataSplit3 = arrData.subList(pivot1,len);
                         ThreadWorkerNats threadWorkerNats1 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit1);
                         ThreadWorkerNats threadWorkerNats2 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit2);
                         ThreadWorkerNats threadWorkerNats3 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit3);
-                        ThreadWorkerNats threadWorkerNats4 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit4);
                         executorService.execute(threadWorkerNats1);
                         executorService.execute(threadWorkerNats2);
                         executorService.execute(threadWorkerNats3);
-                        executorService.execute(threadWorkerNats4);
-                    } else if( len<= levelLine8){
+                    } else if(len<=levelLine6){
                         int pivot1 = len/5;
                         int pivot2 = pivot1 * 2;
                         int pivot3 = pivot1*3;
@@ -197,7 +184,7 @@ public class StreamingUtils {
                         List<String>  dataSplit2 = arrData.subList(pivot1,pivot2);
                         List<String> dataSplit3 = arrData.subList(pivot2,pivot3);
                         List<String> dataSplit4 = arrData.subList(pivot3,pivot4);
-                        List<String> dataSplit5 = arrData.subList(pivot3,len);
+                        List<String> dataSplit5 = arrData.subList(pivot4,len);
                         ThreadWorkerNats threadWorkerNats1 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit1);
                         ThreadWorkerNats threadWorkerNats2 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit2);
                         ThreadWorkerNats threadWorkerNats3 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit3);
@@ -208,7 +195,7 @@ public class StreamingUtils {
                         executorService.execute(threadWorkerNats3);
                         executorService.execute(threadWorkerNats4);
                         executorService.execute(threadWorkerNats5);
-                    } else {
+                    } else if( len<= levelLine8){
                         int pivot1 = len/6;
                         int pivot2 = pivot1 * 2;
                         int pivot3 = pivot1*3;
@@ -232,6 +219,34 @@ public class StreamingUtils {
                         executorService.execute(threadWorkerNats4);
                         executorService.execute(threadWorkerNats5);
                         executorService.execute(threadWorkerNats6);
+                    } else {
+                        int pivot1 = len/7;
+                        int pivot2 = pivot1 * 2;
+                        int pivot3 = pivot1*3;
+                        int pivot4 = pivot1*4;
+                        int pivot5 = pivot1*5;
+                        int pivot6 = pivot1*6;
+                        List<String>  dataSplit1 = arrData.subList(0,pivot1);
+                        List<String>  dataSplit2 = arrData.subList(pivot1,pivot2);
+                        List<String> dataSplit3 = arrData.subList(pivot2,pivot3);
+                        List<String> dataSplit4 = arrData.subList(pivot3,pivot4);
+                        List<String> dataSplit5 = arrData.subList(pivot4,pivot5);
+                        List<String> dataSplit6 = arrData.subList(pivot5,pivot6);
+                        List<String> dataSplit7 = arrData.subList(pivot6,len);
+                        ThreadWorkerNats threadWorkerNats1 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit1);
+                        ThreadWorkerNats threadWorkerNats2 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit2);
+                        ThreadWorkerNats threadWorkerNats3 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit3);
+                        ThreadWorkerNats threadWorkerNats4 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit4);
+                        ThreadWorkerNats threadWorkerNats5 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit5);
+                        ThreadWorkerNats threadWorkerNats6 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit6);
+                        ThreadWorkerNats threadWorkerNats7 = new ThreadWorkerNats(TTL,tableSYS,tableMDO,dataSplit7);
+                        executorService.execute(threadWorkerNats1);
+                        executorService.execute(threadWorkerNats2);
+                        executorService.execute(threadWorkerNats3);
+                        executorService.execute(threadWorkerNats4);
+                        executorService.execute(threadWorkerNats5);
+                        executorService.execute(threadWorkerNats6);
+                        executorService.execute(threadWorkerNats7);
                     }
                     long end = System.currentTimeMillis();
 //                    System.out.println("TIME========: "+counterTimeNats.get());
@@ -247,12 +262,9 @@ public class StreamingUtils {
     }
 
     public void MappingDataNat(List<String> dataList,Table tableMDO, Table tableSYS, Utils utilHbase, long TTL) throws ParseException, IOException {
-//        String data = "ss";
         long start = System.currentTimeMillis();
         JSONObject jsonPortPhone,jsonIPDestPhone,jsonSubPortPhone;
         int countRowMatch = 0;
-
-//        System.out.println(data);
         int len = dataList.size();
         for(int i = 0;i<len;i++ ){
             jsonPortPhone = new JSONObject();
@@ -260,8 +272,6 @@ public class StreamingUtils {
             jsonSubPortPhone = new JSONObject();
             String data = dataList.get(i);
             long finish = System.currentTimeMillis();
-//        totalTime += finish - start;
-//        countMessageSYS++;
             String[] rowData = data.split(",");
             String portPublic = rowData[5];
             Nat natObj = new Nat(rowData[2],rowData[3],rowData[4],rowData[5],rowData[6],rowData[7]);
@@ -350,9 +360,9 @@ public class StreamingUtils {
             }
         }
         long end = System.currentTimeMillis();
-//        counterTimeNats.addAndGet((end-start));
-//        System.out.println("QUANG TIME: "+(end-start));
-//        System.out.println("QUANG COUNT: "+countRowMatch);
+        long total = end-start;
+        System.out.println("TIMEQUANG: "+total);
+
     }
     public void writeDataMDO(List<String> dataList,Table tableMDO,Utils utilHbase,long TTLMDO) throws ParseException, IOException {
         String[] col2 = {"", ""};
