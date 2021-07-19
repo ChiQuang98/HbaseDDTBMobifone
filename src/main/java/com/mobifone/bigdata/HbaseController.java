@@ -88,6 +88,7 @@ public class HbaseController {
         String port = requestMVAS.getSub_ip_port();
         String phoneNumber = null;
         int portPublic ;
+        //QUANG
         String ipDest = requestMVAS.getDestination_address();
         if(port==null||ipPublic==null||port.trim().compareToIgnoreCase("")==0||ipPublic.trim().compareToIgnoreCase("")==0){
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
