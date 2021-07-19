@@ -263,13 +263,14 @@ public class StreamingUtils {
 
     public void MappingDataNat(List<String> dataList,Table tableMDO, Table tableSYS, Utils utilHbase, long TTL) throws ParseException, IOException {
         long start = System.currentTimeMillis();
-        JSONObject jsonPortPhone,jsonIPDestPhone,jsonSubPortPhone;
+        JSONObject jsonPortPhone,jsonIPDestPhone,jsonSubPortPhone,jsonSubIPDestPhone;
         int countRowMatch = 0;
         int len = dataList.size();
         for(int i = 0;i<len;i++ ){
             jsonPortPhone = new JSONObject();
             jsonIPDestPhone = new JSONObject();
             jsonSubPortPhone = new JSONObject();
+            jsonSubIPDestPhone = new JSONObject();
             String data = dataList.get(i);
             long finish = System.currentTimeMillis();
             String[] rowData = data.split(",");
@@ -297,13 +298,16 @@ public class StreamingUtils {
                     String portPhoneStr = Bytes.toString(resultSYS.getValue(Bytes.toBytes("Info"), Bytes.toBytes("PortPhone")));
                     String ipDestPhoneStr = Bytes.toString(resultSYS.getValue(Bytes.toBytes("Info"), Bytes.toBytes("IPDestPhone")));
                     jsonPortPhone = new JSONObject(portPhoneStr);
+                    jsonIPDestPhone = new JSONObject(ipDestPhoneStr);
                     try{
                         jsonSubPortPhone =  jsonPortPhone.getJSONObject(natObj.getPortPublic());
+                        jsonSubIPDestPhone =  jsonIPDestPhone.getJSONObject(natObj.getIpDest());
                         jsonSubPortPhone = new JSONObject();
+                        jsonSubIPDestPhone = new JSONObject();
                     } catch (Exception e){
-                        //e.printStackTrace();
+                        e.printStackTrace();
                     }
-                    jsonIPDestPhone = new JSONObject(ipDestPhoneStr);
+//                    jsonIPDestPhone = new JSONObject(ipDestPhoneStr);
 //                        jsonPortPhone.put("")
                 }
                 if (typeBegin != null && timeStampMDOCol1 != null && phoneMDOCol1 != null && timeStampMDOCol2 != null && phoneMDOCol2 != null) {
@@ -312,13 +316,15 @@ public class StreamingUtils {
                         dateMDOCol2 = df.parse(timeStampMDOCol2);
                         String rowKey = natObj.getiPPublic();
 //                                System.out.println(rowKey);
-
                         if (dateRowSYS.getTime() >= dateMDOCol2.getTime()) {
                             natObj.setPhoneNumber(phoneMDOCol2);
                             jsonSubPortPhone.put("Timestamp",natObj.getTimeStamp());
                             jsonSubPortPhone.put("PhoneNumber",natObj.getPhoneNumber());
                             jsonPortPhone.put(natObj.getPortPublic(),jsonSubPortPhone);
-                            jsonIPDestPhone.put(natObj.getIpDest(),phoneMDOCol2);
+
+                            jsonSubIPDestPhone.put("PortPublic",natObj.getiPPublic());
+                            jsonSubIPDestPhone.put("PhoneNumber",natObj.getPhoneNumber());
+                            jsonIPDestPhone.put(natObj.getIpDest(),jsonSubIPDestPhone);
 //                                System.out.println(jsonPortPhone.toString());
                             natObj.setJsonPortPhone(jsonPortPhone.toString());
                             natObj.setJsonIPDestPhone(jsonIPDestPhone.toString());
@@ -339,7 +345,9 @@ public class StreamingUtils {
                             jsonSubPortPhone.put("Timestamp",natObj.getTimeStamp());
                             jsonSubPortPhone.put("PhoneNumber",natObj.getPhoneNumber());
                             jsonPortPhone.put(natObj.getPortPublic(),jsonSubPortPhone);
-                            jsonIPDestPhone.put(natObj.getIpDest(),phoneMDOCol1);
+                            jsonSubIPDestPhone.put("PortPublic",natObj.getiPPublic());
+                            jsonSubIPDestPhone.put("PhoneNumber",natObj.getPhoneNumber());
+                            jsonIPDestPhone.put(natObj.getIpDest(),jsonSubIPDestPhone);
 //                                System.out.println(jsonPortPhone.toString());
                             natObj.setJsonPortPhone(jsonPortPhone.toString());
                             natObj.setJsonIPDestPhone(jsonIPDestPhone.toString());

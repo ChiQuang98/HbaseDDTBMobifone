@@ -28,6 +28,8 @@ public class ThreadWorkerMDO implements Runnable {
             new StreamingUtils().writeDataMDO(arrList,tableMDO,utilHbase,TTL);
         } catch (IOException | ParseException e) {
             //e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }

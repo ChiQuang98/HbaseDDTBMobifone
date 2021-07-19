@@ -45,6 +45,8 @@ public class ThreadWorkerSocketClient implements Runnable{
             }
         } catch (IOException e) {
             //e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }

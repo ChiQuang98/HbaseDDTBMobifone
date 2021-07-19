@@ -1,29 +1,15 @@
 package com.mobifone.bigdata.model;
 
-public class ResponseTimes {
+public class ResponseVTQT {
     String status;
-    String time;
     String data;
 
-    public ResponseTimes(String status, String data) {
+    public ResponseVTQT(String status, String data) {
         this.status = status;
         this.data = data;
 
     }
 
-    public ResponseTimes(String status, String time, String data) {
-        this.status = status;
-        this.time = time;
-        this.data = data;
-    }
-
-    public String getTime() {
-        return time;
-    }
-
-    public void setTime(String time) {
-        this.time = time;
-    }
 
     public String getStatus() {
         return status;

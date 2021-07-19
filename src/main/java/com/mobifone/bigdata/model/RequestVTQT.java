@@ -1,13 +1,13 @@
 package com.mobifone.bigdata.model;
 
-public class Request {
+public class RequestVTQT {
     private String  msisdn;
     private String  address;
-    private int  port;
+    private String  port;
 
 
 
-    public Request(String msisdn, String address, int port) {
+    public RequestVTQT(String msisdn, String address, String port) {
         this.msisdn = msisdn;
         this.address = address;
         this.port = port;
@@ -29,11 +29,11 @@ public class Request {
         this.address = address;
     }
 
-    public int getPort() {
+    public String getPort() {
         return port;
     }
 
-    public void setPort(int port) {
+    public void setPort(String port) {
         this.port = port;
     }
 }

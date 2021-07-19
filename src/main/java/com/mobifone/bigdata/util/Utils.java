@@ -79,7 +79,14 @@ public class Utils {
         conf.set("hbase.client.retries.number", "2");  // default 35
         conf.set("hbase.rpc.timeout", "10000");  // default 60 secs
         conf.set("hbase.rpc.shortoperation.timeout", "10000"); // default 10 secs
-        Connection connection = ConnectionFactory.createConnection(conf);
+        Connection connection = null;
+        try {
+            connection = ConnectionFactory.createConnection(conf);
+        } catch (IOException e) {
+            throw e;
+//            return null;
+//            e.printStackTrace();
+        }
         if (connection!=null){
             return connection;
         }

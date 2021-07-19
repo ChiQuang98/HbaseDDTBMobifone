@@ -29,6 +29,8 @@ public class ThreadWorkerNats implements Runnable {
             new StreamingUtils().MappingDataNat(arrList,tableMDO,tableSYS,utilHbase,TTL);
         } catch (IOException | ParseException e) {
             //e.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
     }
