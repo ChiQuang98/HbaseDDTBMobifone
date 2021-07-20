@@ -45,15 +45,6 @@ class HBase {
 
                 }
             }).start();
-
-
-//            new Thread(() -> {
-//                streamingUtils.ProcessingStreamMDO(utilHbase,connection,TTLMDO,host,portMDO);
-//            }).start();
-//            new Thread(() -> {
-//               streamingUtils.ProcessingStreamSYS(utilHbase,connection,TTLSYS,host,portSYS);
-//
-//            }).start();
         } catch (Exception exp) {
             System.out.println("fail");
             System.out.println("" + exp.getMessage());

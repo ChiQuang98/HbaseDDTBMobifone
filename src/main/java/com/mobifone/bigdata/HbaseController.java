@@ -3,6 +3,7 @@ package com.mobifone.bigdata;
 
 import com.mobifone.bigdata.api.HbaseAPI;
 import com.mobifone.bigdata.model.*;
+import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
@@ -26,6 +27,7 @@ public class HbaseController {
     @PostMapping("/identificationVTQT")
     @ResponseBody
     public ResponseEntity<?> postResultVTQT(@RequestBody RequestVTQT requestVTQT) {
+//        logger.error("TEST");
         HbaseAPI hbaseAPI = HbaseAPI.getInstance();
         String ipPublic = requestVTQT.getAddress();
         String port = requestVTQT.getPort();
@@ -47,7 +49,6 @@ public class HbaseController {
             } catch (Exception e){
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
             }
-
         }
         try{
             if (portPublic==0){

@@ -358,9 +358,7 @@ public class StreamingUtils {
                                 finish = System.currentTimeMillis();
 //                                    System.out.println("TIME Before - After: " + start + " | " + finish);
                                 String log = "Inserted PhoneNumber:"+phoneMDOCol1+" With (IpPublic: "+rowData[4]+"| PortPublic: "+rowData[5]+") to Table SYS: "  + " In: ";
-//                                System.out.println(log);
-//                                        logger.info(log);
-//                                        writer.println(log);
+
                             }
                         }
                     }

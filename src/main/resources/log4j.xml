@@ -1,0 +1,33 @@
+
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration debug="true" xmlns:log4j='http://jakarta.apache.org/log4j/'>
+
+    <appender name="InfoFileAppender" class="org.apache.log4j.rolling.RollingFileAppender">
+        <rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
+            <param name="FileNamePattern" value="Info_%d{ddMMyyyy}.log" />
+        </rollingPolicy>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} %p %c{1}: %C %M - %m%n" />
+        </layout>
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">
+            <param name="levelMin" value="INFO" />
+            <param name="levelMax" value="INFO" />
+        </filter>
+    </appender>
+
+    <appender name="ErrorFileAppender" class="org.apache.log4j.rolling.RollingFileAppender">
+        <param name="Threshold" value="ERROR" />
+        <rollingPolicy class="org.apache.log4j.rolling.TimeBasedRollingPolicy">
+            <param name="FileNamePattern" value="Error_%d{ddMMyyyy}.log" />
+        </rollingPolicy>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="%d{yyyy-MM-dd HH:mm:ss} %p %c{1}: %C %M - %m%n" />
+        </layout>
+    </appender>
+    <root>
+        <level value="INFO" />
+        <appender-ref ref="InfoFileAppender" />
+        <appender-ref ref="ErrorFileAppender" />
+    </root>
+
+</log4j:configuration>
