@@ -52,8 +52,11 @@ public class StreamingUtils {
                 try{
                     String data = (String) os.readObject();
 //                    System.out.println(data);
-                    List<String> arrData = Arrays.asList(data.split("\n"));
+                    List<String> arrData = Arrays.asList(data.split("\\r?\\n"));
                     int len = arrData.size();
+//                    for(int k=0;k<len;k++){
+//                        System.out.println("Q: "+arrData.get(k));
+//                    }
                     if(len<=levelLine2){
                         ThreadWorkerMDO threadWorkerMDO = new ThreadWorkerMDO(TTLMDO,tableMDO,arrData);
                         executorService.execute(threadWorkerMDO);
@@ -153,7 +156,7 @@ public class StreamingUtils {
             while (true) {
                 try{
                     String data = (String) os.readObject();
-                    List<String> arrData = Arrays.asList(data.split("\n"));
+                    List<String> arrData = Arrays.asList(data.split("\\r?\\n"));
                     int len = arrData.size();
                     if(len<=levelLine2){
                         int pivot = len/2;
