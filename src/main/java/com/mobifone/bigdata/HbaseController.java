@@ -3,7 +3,10 @@ package com.mobifone.bigdata;
 
 import com.mobifone.bigdata.api.HbaseAPI;
 import com.mobifone.bigdata.model.*;
-import org.apache.log4j.LogManager;
+
+import com.mobifone.bigdata.util.ElasticSearch;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
@@ -12,6 +15,19 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.text.SimpleDateFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+import java.util.Locale;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 public class HbaseController {
@@ -23,11 +39,14 @@ public class HbaseController {
     public ResponseEntity<?> getResult(Model model) {
         return ResponseEntity.ok("Hello");
     }
-
     @PostMapping("/identificationVTQT")
     @ResponseBody
     public ResponseEntity<?> postResultVTQT(@RequestBody RequestVTQT requestVTQT) {
-//        logger.error("TEST");
+        System.out.println(getCurrentLocalDateTimeStamp());
+        System.out.println("Month: "+getMonth());
+        JSONObject jsonRequest = new JSONObject();
+        jsonRequest.put("time_request",getCurrentLocalDateTimeStamp());
+        ElasticSearch utilElastic = new ElasticSearch("localhost",9200);
         HbaseAPI hbaseAPI = HbaseAPI.getInstance();
         String ipPublic = requestVTQT.getAddress();
         String port = requestVTQT.getPort();
@@ -71,6 +90,7 @@ public class HbaseController {
 
         if(phoneNumber.compareToIgnoreCase("")==0||ipPublic.compareToIgnoreCase("")==0){
             ResponseTimesVTQT resVTQT = new ResponseTimesVTQT("NOT_MATCHED", null);
+
             return ResponseEntity.ok(resVTQT);
         }
         if (timeStamp!=null){
@@ -78,12 +98,21 @@ public class HbaseController {
             return ResponseEntity.ok(resVTQT);
         } else {
             ResponseVTQT resVTQT = new ResponseVTQT("NOT_MATCHED", null);
+            jsonRequest.put("time_response",getCurrentLocalDateTimeStamp());
+            jsonRequest.put("isdn","NULL");
+            jsonRequest.put("partner_id","id");
+            jsonRequest.put("partner_id",2);
+            jsonRequest.put("result",1);
+            jsonRequest.put("response_code",200);
+            System.out.println("MONTHss"+getMonth().toLowerCase());
+            utilElastic.SaveLogsRequest(getMonth().toLowerCase(),jsonRequest);
             return ResponseEntity.ok(resVTQT);
         }
     }
     @PostMapping("/identificationMVAS")
     @ResponseBody
     public ResponseEntity<?> postResultMVAS(@RequestBody RequestMVAS requestMVAS) throws IOException {
+        System.out.println("");
         HbaseAPI hbaseAPI = HbaseAPI.getInstance();
         String ipPublic = requestMVAS.getSub_ip_address();
         String port = requestMVAS.getSub_ip_port();
@@ -121,5 +150,12 @@ public class HbaseController {
             ResponseMVAS resMvas = new ResponseMVAS("NOT_MATCHED");
             return ResponseEntity.ok(resMvas);
         }
+    }
+    public String getCurrentLocalDateTimeStamp() {
+        return LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss"));
+    }
+    public String getMonth(){
+        return LocalDateTime.now().getMonth().toString();
     }
 }
