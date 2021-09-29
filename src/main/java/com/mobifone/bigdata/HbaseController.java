@@ -1,33 +1,20 @@
 package com.mobifone.bigdata;
 
-
 import com.mobifone.bigdata.api.HbaseAPI;
 import com.mobifone.bigdata.model.*;
-
-import com.mobifone.bigdata.util.ElasticSearch;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
+import com.mobifone.bigdata.util.ElasticSearchHTTP;
+import com.mobifone.bigdata.util.ElasticSearchUtil;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
-import java.util.Locale;
-import java.util.concurrent.CompletableFuture;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 public class HbaseController {
@@ -39,14 +26,49 @@ public class HbaseController {
     public ResponseEntity<?> getResult(Model model) {
         return ResponseEntity.ok("Hello");
     }
+    @PostMapping("/historyRequestVTQT")
+    @ResponseBody
+    public ResponseEntity<?> postHistoryRequestVTQT(@RequestBody RequestHistoryVTQT requestHistoryVTQT){
+        String time_start = requestHistoryVTQT.getTimestart();
+        String time_end = requestHistoryVTQT.getTimeend();
+        if(time_start==null||time_end==null||time_start.compareToIgnoreCase("")==0||time_end.compareToIgnoreCase("")==0){
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+        ElasticSearchHTTP elasHTTP = new ElasticSearchHTTP("localhost",9200);
+        long num_success = -1;
+        ResponseHTTPCount resSuccess = elasHTTP.GetCount(time_start,time_end,1);
+        if (resSuccess == null){
+            //500
+        } else {
+            if (resSuccess.getStatusCode()==200){
+                num_success = resSuccess.getNumber();
+            } else{
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("error");
+                //loi khac
+            }
+        }
+        long num_notMatch = -1;
+        ResponseHTTPCount resFail = elasHTTP.GetCount(time_start,time_end,0);
+        if (resFail == null){
+            //500
+        } else {
+            if (resFail.getStatusCode()==200){
+                num_notMatch = resFail.getNumber();
+            } else{
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("error");
+                //loi khac
+            }
+        }
+        ResponseHistoryVTQT responseHistoryVTQT = new ResponseHistoryVTQT(num_success,num_notMatch,200);
+        return ResponseEntity.ok(responseHistoryVTQT);
+    }
     @PostMapping("/identificationVTQT")
     @ResponseBody
     public ResponseEntity<?> postResultVTQT(@RequestBody RequestVTQT requestVTQT) {
         System.out.println(getCurrentLocalDateTimeStamp());
         System.out.println("Month: "+getMonth());
-        JSONObject jsonRequest = new JSONObject();
-        jsonRequest.put("time_request",getCurrentLocalDateTimeStamp());
-        ElasticSearch utilElastic = new ElasticSearch("localhost",9200);
+        Map<String,Object> jsonMap = new HashMap<>();
+        jsonMap.put("time_request",getCurrentLocalDateTimeStamp());
         HbaseAPI hbaseAPI = HbaseAPI.getInstance();
         String ipPublic = requestVTQT.getAddress();
         String port = requestVTQT.getPort();
@@ -90,22 +112,31 @@ public class HbaseController {
 
         if(phoneNumber.compareToIgnoreCase("")==0||ipPublic.compareToIgnoreCase("")==0){
             ResponseTimesVTQT resVTQT = new ResponseTimesVTQT("NOT_MATCHED", null);
-
+            jsonMap.put("time_response", getCurrentLocalDateTimeStamp());
+            jsonMap.put("isdn","NULL");
+            jsonMap.put("partner_id",2);
+            jsonMap.put("result",0);
+            jsonMap.put("response_code",200);
+            ElasticSearchUtil.getInstance().InsertJson(jsonMap,getMonth().toLowerCase());
             return ResponseEntity.ok(resVTQT);
         }
         if (timeStamp!=null){
             ResponseTimesVTQT resVTQT = new ResponseTimesVTQT("OK",timeStamp, null);
+            jsonMap.put("time_response", getCurrentLocalDateTimeStamp());
+            jsonMap.put("isdn","NULL");
+            jsonMap.put("partner_id",2);
+            jsonMap.put("result",0);
+            jsonMap.put("response_code",200);
+            ElasticSearchUtil.getInstance().InsertJson(jsonMap,getMonth().toLowerCase());
             return ResponseEntity.ok(resVTQT);
         } else {
             ResponseVTQT resVTQT = new ResponseVTQT("NOT_MATCHED", null);
-            jsonRequest.put("time_response",getCurrentLocalDateTimeStamp());
-            jsonRequest.put("isdn","NULL");
-            jsonRequest.put("partner_id","id");
-            jsonRequest.put("partner_id",2);
-            jsonRequest.put("result",1);
-            jsonRequest.put("response_code",200);
-            System.out.println("MONTHss"+getMonth().toLowerCase());
-            utilElastic.SaveLogsRequest(getMonth().toLowerCase(),jsonRequest);
+            jsonMap.put("time_response", getCurrentLocalDateTimeStamp());
+            jsonMap.put("isdn","NULL");
+            jsonMap.put("partner_id",2);
+            jsonMap.put("result",0);
+            jsonMap.put("response_code",200);
+            ElasticSearchUtil.getInstance().InsertJson(jsonMap,getMonth().toLowerCase());
             return ResponseEntity.ok(resVTQT);
         }
     }
