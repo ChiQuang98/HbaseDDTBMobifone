@@ -1,6 +1,7 @@
 package com.mobifone.bigdata.util;
 
-import com.mobifone.bigdata.model.Nat;
+
+import com.mobifone.bigdata.common.AppConfig;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
@@ -10,16 +11,22 @@ import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.IOException;
+import java.util.Properties;
 
 
 public class Utils {
     private static Utils instance;
-
-    public static Utils getInstance() {
+    private Connection connection = null;
+    private Properties properties;
+    public static Utils getInstance() throws IOException {
         if(instance!=null){
             return instance;
         }
         return new Utils();
+    }
+
+    public Utils() throws IOException {
+        properties = AppConfig.getAppConfigProperties();
     }
 
     public static final int typeMDONull = 0;
@@ -68,8 +75,8 @@ public class Utils {
     public Connection GetConnectionHbase() throws IOException {
         Configuration conf = HBaseConfiguration.create();
         conf.clear();
-        conf.set("hbase.zookeeper.quorum", "localhost");
-        conf.set("hbase.zookeeper.property.clientPort", "2181");
+        conf.set("hbase.zookeeper.quorum", properties.getProperty("hbase.host"));
+        conf.set("hbase.zookeeper.property.clientPort", properties.getProperty("hbase.port"));
         conf.set("hbase.rootdir","/apps/hbase/data");
 //      conf.set("zookeeper.znode.parent","/hbase-secure");
         conf.set("hbase.cluster.distributed","false");
@@ -108,107 +115,5 @@ public class Utils {
         System.out.println("Fail or Table Existed: "+tableName);
         return false;
     }
-//    {"IPPrivate","PortPrivate","IPPublic","PortPublic","IPDest","PortDest"},
-    public boolean insertData(Table table, String keyRow, String []columFamily, String[][] colums, long TTL, Nat sysObj){
-        Put p = new Put(Bytes.toBytes(keyRow));
-//        p.addColumn(Bytes.toBytes(columFamily[0]), Bytes.toBytes(colums[0][0]), Bytes.toBytes(sysObj.getPhoneNumber())).setTTL(TTL);
-        p.addColumn(Bytes.toBytes(columFamily[0]), Bytes.toBytes(colums[0][0]), Bytes.toBytes(sysObj.getJsonPortPhone())).setTTL(TTL);
-        p.addColumn(Bytes.toBytes(columFamily[0]), Bytes.toBytes(colums[0][1]), Bytes.toBytes(sysObj.getJsonIPDestPhone())).setTTL(TTL);
-        p.addColumn(Bytes.toBytes(columFamily[1]), Bytes.toBytes(colums[1][0]), Bytes.toBytes(sysObj.getiPPrivate())).setTTL(TTL);
-        p.addColumn(Bytes.toBytes(columFamily[1]), Bytes.toBytes(colums[1][1]), Bytes.toBytes(sysObj.getPortPrivate())).setTTL(TTL);
-        p.addColumn(Bytes.toBytes(columFamily[1]), Bytes.toBytes(colums[1][2]), Bytes.toBytes(sysObj.getiPPublic())).setTTL(TTL);
-        p.addColumn(Bytes.toBytes(columFamily[1]), Bytes.toBytes(colums[1][3]), Bytes.toBytes(sysObj.getPortPublic())).setTTL(TTL);
-        p.addColumn(Bytes.toBytes(columFamily[1]), Bytes.toBytes(colums[1][4]), Bytes.toBytes(sysObj.getIpDest())).setTTL(TTL);
-        p.addColumn(Bytes.toBytes(columFamily[1]), Bytes.toBytes(colums[1][5]), Bytes.toBytes(sysObj.getPortDest())).setTTL(TTL);
-        try {
-            table.put(p);
-            return true;
-        } catch (IOException e) {
-            //e.printStackTrace();
-            return false;
-        }
 
-    }
-    public boolean insertDataMDO(Table table, String keyRow, String[] columFamily, String[][] colums, long TTL, int typeInsert,String []col2, String []value){
-        Put p = new Put(Bytes.toBytes(keyRow));
-        int lenColumFamily = columFamily.length;
-        int index = 0;
-        switch (typeInsert){
-            case typeMDONull:
-                for(int i=0;i<lenColumFamily;i++){
-                    int lenColumEachFamily = colums[i].length;
-                    for(int j=0;j<lenColumEachFamily;j++){
-                        if (i==0||i==3){
-                            p.addColumn(Bytes.toBytes(columFamily[i]), Bytes.toBytes(colums[i][j]), Bytes.toBytes(value[index])).setTTL(TTL);
-                            if(j==1){
-                                index++;
-                            }
-                        } else{
-                            p.addColumn(Bytes.toBytes(columFamily[i]), Bytes.toBytes(colums[i][j]), Bytes.toBytes(value[index])).setTTL(TTL);
-                            index++;
-                        }
-                    }
-                }
-                try {
-                    table.put(p);
-                    return true;
-                } catch (IOException e) {
-                    //e.printStackTrace();
-                    return false;
-                }
-            case typeMDOExistCol1Curr:
-                for(int i=0;i<lenColumFamily;i++){
-                    int lenColumEachFamily = colums[i].length;
-                    for(int j=0;j<lenColumEachFamily;j++){
-                        if (i==0&&j==0){//col1
-                            p.addColumn(Bytes.toBytes(columFamily[i]), Bytes.toBytes(colums[i][j]), Bytes.toBytes(value[index])).setTTL(TTL);
-                            index++;
-                        } else if (i ==0 && j==1){//col2 giu nguyen
-                        } else if (i == 3 && j==0){
-                            p.addColumn(Bytes.toBytes(columFamily[i]), Bytes.toBytes(colums[i][j]), Bytes.toBytes(value[index])).setTTL(TTL);
-                            index++;
-                        } else if(i==3 && j==1){
-                        } else{
-                            p.addColumn(Bytes.toBytes(columFamily[i]), Bytes.toBytes(colums[i][j]), Bytes.toBytes(value[index])).setTTL(TTL);
-                            index++;
-                        }
-                    }
-                }
-                try {
-                    table.put(p);
-                    return true;
-                } catch (IOException e) {
-                    //e.printStackTrace();
-                    return false;
-                }
-            case typeMDOExistCol2Curr:
-                for(int i=0;i<lenColumFamily;i++){
-                    int lenColumEachFamily = colums[i].length;
-                    for(int j=0;j<lenColumEachFamily;j++){
-                        if (i==0&&j==0){
-                            p.addColumn(Bytes.toBytes(columFamily[i]), Bytes.toBytes(colums[i][j]), Bytes.toBytes(col2[0])).setTTL(TTL);
-                        } else if (i ==0 && j==1){
-                            p.addColumn(Bytes.toBytes(columFamily[i]), Bytes.toBytes(colums[i][j]), Bytes.toBytes(value[index])).setTTL(TTL);
-                            index++;
-                        } else if (i == 3 && j==0){
-                            p.addColumn(Bytes.toBytes(columFamily[i]), Bytes.toBytes(colums[i][j]), Bytes.toBytes(col2[1])).setTTL(TTL);
-                        } else if(i==3 && j==1){
-                            p.addColumn(Bytes.toBytes(columFamily[i]), Bytes.toBytes(colums[i][j]), Bytes.toBytes(value[index])).setTTL(TTL);
-                            index++;
-                        } else{
-                            p.addColumn(Bytes.toBytes(columFamily[i]), Bytes.toBytes(colums[i][j]), Bytes.toBytes(value[index])).setTTL(TTL);
-                            index++;
-                        }
-                    }
-                }
-                try {
-                    table.put(p);
-                    return true;
-                } catch (IOException e) {
-                    //e.printStackTrace();
-                    return false;
-                }
-        }
-        return false;
-    }
 }

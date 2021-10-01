@@ -1,4 +1,5 @@
 package com.mobifone.bigdata.util;
+import com.mobifone.bigdata.common.AppConfig;
 import org.apache.http.HttpHost;
 import org.elasticsearch.ElasticsearchException;
 import org.elasticsearch.action.ActionListener;
@@ -21,27 +22,25 @@ import org.elasticsearch.search.builder.SearchSourceBuilder;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Properties;
 
 public class ElasticSearchUtil {
     private static ElasticSearchUtil instance;
     private RestHighLevelClient clientElastic;
 
-    public ElasticSearchUtil() {
+    public ElasticSearchUtil() throws IOException {
+        Properties appProperties = AppConfig.getAppConfigProperties();
         clientElastic= new RestHighLevelClient(
-                RestClient.builder(new HttpHost("10.4.200.61",9200,"http"))
+                RestClient.builder(new HttpHost(appProperties.getProperty("elasticsearch.host"),Integer.parseInt(appProperties.getProperty("elasticsearch.port")),"http"))
         );
-        try {
-            ClusterHealthResponse response = clientElastic.cluster().health(new ClusterHealthRequest(), RequestOptions.DEFAULT);
-            ActionListener<ClusterHealthResponse> listener = ActionListener.<ClusterHealthResponse>wrap(
-                    r -> System.out.println(),Throwable::printStackTrace
-            );
-            clientElastic.cluster().healthAsync(new ClusterHealthRequest(),RequestOptions.DEFAULT,listener);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        ClusterHealthResponse response = clientElastic.cluster().health(new ClusterHealthRequest(), RequestOptions.DEFAULT);
+        ActionListener<ClusterHealthResponse> listener = ActionListener.<ClusterHealthResponse>wrap(
+                r -> System.out.println(),Throwable::printStackTrace
+        );
+        clientElastic.cluster().healthAsync(new ClusterHealthRequest(),RequestOptions.DEFAULT,listener);
     }
 
-    public static ElasticSearchUtil getInstance() {
+    public static ElasticSearchUtil getInstance() throws IOException {
         if (instance==null){
             return new ElasticSearchUtil();
         }

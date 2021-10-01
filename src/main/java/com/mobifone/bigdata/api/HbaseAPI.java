@@ -9,6 +9,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.Iterator;
 
 public class HbaseAPI {
@@ -20,10 +21,12 @@ public class HbaseAPI {
         }
         return new HbaseAPI();
     }
+
+
+
     public String CheckPortPublicWithIpDest(String ipPublic, int portPublic, String ipDest) throws IOException {
         Utils utilHbase = Utils.getInstance();
         JSONObject jsonIPDestPhone,jsonSubIPDestPhone;
-//        try{
         Connection connection = utilHbase.GetConnectionHbase();
         Table tableSYS = connection.getTable(TableName.valueOf("SYSTable"));
         String rowKey = ipPublic;
@@ -92,10 +95,21 @@ public class HbaseAPI {
         }
     }
     public String CheckPhoneNumberPortPublic(String ipPublic, String phone, int portPublic) throws IOException {
-        Utils utilHbase = Utils.getInstance();
+        Utils utilHbase = null;
+        try{
+            utilHbase = Utils.getInstance();
+        } catch (Exception e){
+            System.out.println(e.getMessage());
+        }
+        if (utilHbase == null){
+            System.out.println("UTILHBASE NULL");
+        }
         JSONObject jsonPortPhone,jsonSubPortPhone;
 //        try{
             Connection connection = utilHbase.GetConnectionHbase();
+            if (connection == null){
+                throw new ConnectException();
+            }
             Table tableSYS = connection.getTable(TableName.valueOf("SYSTable"));
             String rowKey = ipPublic;
             Get get = new Get(Bytes.toBytes(rowKey));
@@ -136,6 +150,9 @@ public class HbaseAPI {
         Utils utilHbase = Utils.getInstance();
         JSONObject jsonPortPhone,jsonSubPortPhone;
         Connection connection = utilHbase.GetConnectionHbase();
+        if (connection == null){
+            throw new ConnectException();
+        }
         Table tableSYS = connection.getTable(TableName.valueOf("SYSTable"));
         String rowKey = ipPublic;
         Get get = new Get(Bytes.toBytes(rowKey));

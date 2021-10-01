@@ -2,7 +2,7 @@ package com.mobifone.bigdata;
 
 import com.mobifone.bigdata.api.HbaseAPI;
 import org.json.JSONObject;
-import org.apache.log4j.Logger;
+
 
 
 public class TestAPI {
