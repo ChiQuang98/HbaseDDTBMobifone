@@ -15,13 +15,10 @@ import java.net.MalformedURLException;
 public class BigdataApplication {
     private static final Logger logger = Logger.getLogger(BigdataApplication.class);
     public static void main(String[] args) {
-        try {
-            PropertyConfigurator.configure(AppConfig.getConfLocation() + "/" + "log4j-ddtbapi.properties");
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
+
+//           PropertyConfigurator.configure(AppConfig.getConfLocation() + "/" + "application.properties");
+            logger.error("test");
+
         SpringApplication.run(BigdataApplication.class, args);
     }
 }

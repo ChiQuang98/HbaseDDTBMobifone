@@ -2,6 +2,7 @@ package com.mobifone.bigdata;
 
 import com.mobifone.bigdata.api.HbaseAPI;
 import com.mobifone.bigdata.common.AppConfig;
+import com.mobifone.bigdata.config.ApplicationConfig;
 import com.mobifone.bigdata.model.*;
 import com.mobifone.bigdata.util.ElasticSearchHTTP;
 import com.mobifone.bigdata.util.ElasticSearchUtil;
@@ -9,6 +10,8 @@ import io.github.resilience4j.timelimiter.TimeLimiter;
 import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
@@ -26,10 +29,15 @@ import java.util.concurrent.CompletableFuture;
 
 @RestController
 public class HbaseController {
+
+    @Autowired
+    private ApplicationConfig applicationConfig;
+
     private RequestVTQT data;
     private Boolean connectDB;
     private String regexPhoneNumber = "([84|0]+[3|5|7|8|9])+([0-9]{8})";
     private static final Logger logger = Logger.getLogger(HbaseController.class);
+
     @GetMapping("/identification")
     public ResponseEntity<?> getResult(Model model) {
         return ResponseEntity.ok("Hello");
@@ -37,6 +45,8 @@ public class HbaseController {
     @PostMapping("/historyRequestVTQT")
     @ResponseBody
     public ResponseEntity<?> postHistoryRequestVTQT(@RequestBody RequestHistoryVTQT requestHistoryVTQT) throws IOException {
+
+        logger.info(applicationConfig.getHbaseHost());
         String time_start = requestHistoryVTQT.getTimestart();
         String time_end = requestHistoryVTQT.getTimeend();
         JSONObject jsonError = new JSONObject();
@@ -44,8 +54,8 @@ public class HbaseController {
 
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-        Properties appProperties = AppConfig.getAppConfigProperties();
-        ElasticSearchHTTP elasHTTP = new ElasticSearchHTTP(appProperties.getProperty("elasticsearch.host"),Integer.parseInt(appProperties.getProperty("elasticsearch.port")));
+
+        ElasticSearchHTTP elasHTTP = new ElasticSearchHTTP(applicationConfig.getElasticHost(),Integer.parseInt(applicationConfig.getHbasePort()));
         long num_success = -1;
         ResponseHTTPCount resSuccess = elasHTTP.GetCount(time_start,time_end,1);
         if (resSuccess == null){

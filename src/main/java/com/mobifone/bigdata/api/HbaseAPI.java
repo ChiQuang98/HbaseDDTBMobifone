@@ -99,9 +99,11 @@ public class HbaseAPI {
         try{
             utilHbase = Utils.getInstance();
         } catch (Exception e){
+            logger.error(e.getMessage());
             System.out.println(e.getMessage());
         }
         if (utilHbase == null){
+            logger.error("Null get intance connect Hbase");
             System.out.println("UTILHBASE NULL");
         }
         JSONObject jsonPortPhone,jsonSubPortPhone;
