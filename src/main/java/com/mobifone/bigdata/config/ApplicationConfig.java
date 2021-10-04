@@ -10,10 +10,13 @@ public class ApplicationConfig {
 
     @Value("${hbase.host}")
     private String hbaseHost;
+    
     @Value("${hbase.port}")
     private String hbasePort;
+    
     @Value("${elasticsearch.host}")
     private String elasticHost;
+    
     @Value("${elasticsearch.port}")
     private String elasticPort;
 
