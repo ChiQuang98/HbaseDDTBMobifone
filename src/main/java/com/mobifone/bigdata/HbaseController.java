@@ -1,7 +1,6 @@
 package com.mobifone.bigdata;
 
 import com.mobifone.bigdata.api.HbaseAPI;
-import com.mobifone.bigdata.common.AppConfig;
 import com.mobifone.bigdata.config.ApplicationConfig;
 import com.mobifone.bigdata.model.*;
 import com.mobifone.bigdata.util.ElasticSearchHTTP;
@@ -11,7 +10,6 @@ import io.github.resilience4j.timelimiter.TimeLimiterConfig;
 import org.apache.log4j.Logger;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
@@ -23,7 +21,6 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 
@@ -51,10 +48,8 @@ public class HbaseController {
         String time_end = requestHistoryVTQT.getTimeend();
         JSONObject jsonError = new JSONObject();
         if(time_start==null||time_end==null||time_start.compareToIgnoreCase("")==0||time_end.compareToIgnoreCase("")==0){
-
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
         }
-
         ElasticSearchHTTP elasHTTP = new ElasticSearchHTTP(applicationConfig.getElasticHost(),Integer.parseInt(applicationConfig.getHbasePort()));
         long num_success = -1;
         ResponseHTTPCount resSuccess = elasHTTP.GetCount(time_start,time_end,1);
@@ -62,7 +57,7 @@ public class HbaseController {
             jsonError.put("status","ERROR");
             jsonError.put("data","Error calling internal Database");
             logger.error("Error calling internal ElasticSearch Database");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(jsonError.toString());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(jsonError.toMap());
         } else {
             if (resSuccess.getStatusCode()==200){
                 num_success = resSuccess.getNumber();
@@ -70,7 +65,7 @@ public class HbaseController {
                 jsonError.put("status","ERROR");
                 jsonError.put("data","Error calling internal Database");
                 logger.error("Error calling internal ElasticSearch Database");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(jsonError.toString());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(jsonError.toMap());
             }
         }
         long num_notMatch = -1;
@@ -79,7 +74,7 @@ public class HbaseController {
             jsonError.put("status","ERROR");
             jsonError.put("data","Error calling internal Database");
             logger.error("Error calling internal ElasticSearch Database");
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(jsonError.toString());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(jsonError.toMap());
         } else {
             if (resFail.getStatusCode()==200){
                 num_notMatch = resFail.getNumber();
@@ -87,7 +82,7 @@ public class HbaseController {
                 jsonError.put("status","ERROR");
                 jsonError.put("data","Error calling internal Database");
                 logger.error("Error calling internal ElasticSearch Database");
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(jsonError.toString());
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(jsonError.toMap());
             }
         }
         ResponseHistoryVTQT responseHistoryVTQT = new ResponseHistoryVTQT(num_success,num_notMatch,200);
