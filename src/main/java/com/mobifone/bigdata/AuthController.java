@@ -17,10 +17,12 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.mobifone.bigdata.ldap.BlindSslSocketFactory;
+import com.mobifone.bigdata.model.Partner;
 import com.mobifone.bigdata.model.User;
 import com.mobifone.bigdata.request.LoginRequest;
 import com.mobifone.bigdata.response.LoginResponse;
 import com.mobifone.bigdata.security.JwtConfig;
+import com.mobifone.bigdata.service.PartnerService;
 import com.mobifone.bigdata.service.UserDetailsImpl;
 import com.mobifone.bigdata.service.UserDetailsServiceImpl;
 import com.mobifone.bigdata.util.Constants;
@@ -36,6 +38,9 @@ public class AuthController {
 
 	@Autowired
 	private UserDetailsServiceImpl userDetailsServiceImpl;
+
+	@Autowired
+	private PartnerService partnerService;
 
 	public static String dotEmail = "@mobifone.vn";
 
@@ -71,19 +76,52 @@ public class AuthController {
 
 		return ResponseEntity.ok(loginResponse);
 	}
-	
-//	@PostMapping("/signin")
-//	public ResponseEntity<?> signin( @RequestBody LoginRequest request) throws Exception {
-//
-//		LoginResponse loginResponse = new LoginResponse();
-//		
-//		FinPartner finPartner = finPartnerService.getFinPartner(request.getUsername(),request.getPassword());
-//
-//		loginResponse = generateToken(finPartner);
-//
-//		return ResponseEntity.ok(loginResponse);
-//	}
-	
+
+	@PostMapping("/signin")
+	public ResponseEntity<?> signin(@RequestBody LoginRequest request) throws Exception {
+
+		LoginResponse loginResponse = new LoginResponse();
+
+		Partner partner = partnerService.getPartner(request.getUsername(), request.getPassword());
+
+		loginResponse = generateToken(partner);
+		;
+
+		return ResponseEntity.ok(loginResponse);
+	}
+
+	private LoginResponse generateToken(Object object) {
+
+		LoginResponse loginResponse = null;
+
+		if (object instanceof User) {
+
+			System.out.println("User");
+
+			User user = (User) object;
+
+			String token = jwtConfig.generateJwtToken(user);
+
+			UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsServiceImpl
+					.loadUserByUsername(user.getUsername());
+
+			List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
+					.collect(Collectors.toList());
+
+			loginResponse = new LoginResponse(userDetails.getUsername(), token);
+		} else if (object instanceof Partner) {
+
+			System.out.println("FinPartner");
+
+			Partner finPartner = (Partner) object;
+
+			String token = jwtConfig.generateJwtToken(finPartner);
+
+			loginResponse = new LoginResponse(finPartner.getUsername(), token);
+		}
+
+		return loginResponse;
+	}
 
 	private Authentication authenticate(String username, String password) throws Exception {
 		try {
@@ -95,24 +133,6 @@ public class AuthController {
 		} catch (BadCredentialsException e) {
 			throw new Exception("Mật khẩu không đúng.", e);
 		}
-	}
-
-	private LoginResponse generateToken(Object object) {
-
-		LoginResponse loginResponse = null;
-
-		User user = (User) object;
-
-		String token = jwtConfig.generateJwtToken(user);
-
-		UserDetailsImpl userDetails = (UserDetailsImpl) userDetailsServiceImpl.loadUserByUsername(user.getUsername());
-
-		List<String> roles = userDetails.getAuthorities().stream().map(item -> item.getAuthority())
-				.collect(Collectors.toList());
-
-		loginResponse = new LoginResponse(userDetails.getUsername(), token);
-
-		return loginResponse;
 	}
 
 }

@@ -1,21 +1,13 @@
 package com.mobifone.bigdata.security;
 
-import java.io.IOException;
 import java.util.Date;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
 import org.apache.log4j.Logger;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.PropertySource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
+import com.mobifone.bigdata.model.Partner;
 import com.mobifone.bigdata.model.User;
 
 import io.jsonwebtoken.ExpiredJwtException;
@@ -36,28 +28,27 @@ public class JwtConfig {
 
 	@Value("${app.jwtExpiration}")
 	private int jwtExpiration;
-	
+
 	@Value("${app.prefix}")
 	private String prefix;
-	
+
 	@Value("${app.header}")
 	private String header;
-	
 
 	public String generateJwtToken(User user) {
-		
-		System.out.println("jwtExpiration : " + jwtExpiration);
 
-		return Jwts.builder()
-				.setSubject((user.getUsername()))
-				.setIssuedAt(new Date())
+		return Jwts.builder().setSubject((user.getUsername())).setIssuedAt(new Date())
 				.setExpiration(new Date((new Date()).getTime() + jwtExpiration))
-				.signWith(SignatureAlgorithm.HS512, jwtSecret)
-				.compact();
+				.signWith(SignatureAlgorithm.HS512, jwtSecret).compact();
 	}
-	
-	
-	
+
+	public String generateJwtToken(Partner part) {
+
+		return Jwts.builder().setSubject((part.getUsername())).setIssuedAt(new Date())
+				.setExpiration(new Date((new Date()).getTime() + jwtExpiration))
+				.signWith(SignatureAlgorithm.HS512, jwtSecret).compact();
+	}
+
 	public String getUserNameFromJwtToken(String token) {
 		return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
 	}
@@ -78,5 +69,5 @@ public class JwtConfig {
 
 		return false;
 	}
-	
+
 }
